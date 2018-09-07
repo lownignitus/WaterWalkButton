@@ -303,7 +303,11 @@ function wwbInitialize()
 		wwbMouseOverOpt:SetChecked(false)
 	end
 
-	wwbMakeButton(classIndex)
+	if classIndex == 6 or classIndex == 7 then
+		wwbMakeButton(classIndex)
+	else
+		wwbFrame:Hide()
+	end
 end
 
 function wwbMouseOverEnter()
