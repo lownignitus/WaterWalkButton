@@ -4,7 +4,7 @@
 ## Notes Standalone button for Shaman/Death Knight water walk spells.
 ## Author: |cffDA70D6LownIgnitus|r aka Mihkael of Alexstrasza-US Alliance
 ## X-Contact: https://twitter.com/lownignitus
-## X-Date: 19/08/2018
+## X-Date: 06/09/2018
 ## X-Website: https://github.com/lownignitus/WaterWalkButton
 ## SavedVariables: wwbSettings
 

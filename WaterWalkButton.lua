@@ -80,7 +80,7 @@ function wwbOptionsInit()
 	local wideWidth = panelWidth - 40
 	wwbOptions:SetWidth(wideWidth)
 	wwbOptions:Hide();
-	wwbOptions.name = "|cff00ff00Skill Helper|r"
+	wwbOptions.name = "|cff00ff00Water Walk Button|r"
 	wwbOptionsBG = { edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border", tile = true, edgeSize = 16 }
 
 	-- Special thanks to Ro for inspiration for the overall structure of this options panel (and the title/version/description code)
@@ -263,18 +263,100 @@ function wwbInitialize()
 	-- 0=none, 1=Warrior, 2=Paladin, 3=Hunter, 4=Rogue, 5=Priest, 6=DK, 7=Shaman, 8=Mage, 9=Warlock, 10=Monk, 11=Druid, 12=DH
 	class, enClass, classIndex = UnitClass("player")
 
+	wwbFrame:SetScale(wwbSettings.wwbScale)
+
 	if wwbSettings.options.wwbLock == true then
 		wwbFrame:EnableMouse(true)
+		wwbLockBtnOpt:SetChecked(false)
 	else
 		wwbFrame:EnableMouse(false)
+		wwbLockBtnOpt:SetChecked(true)
 	end
 
-	if wwbSettings.options.wwbHidden == false then
+	if wwbSettings.options.wwbHidden == true then
 		wwbFrame:Show()
+		wwbHideBtnOpt:SetChecked(false)
 	else
 		wwbFrame:Hide()
+		wwbHideBtnOpt:SetChecked(true)
 	end
 
 	if wwbSettings.options.wwbMouseOver == true then
-		
+		wwbMouseOverOpt:SetChecked(true)
+		wwbFrame:SetAlpha(wwbSettings.options.wwbAlpha)
+	else
+		wwbMouseOverOpt:SetChecked(false)
+		wwbMouseOverOpt:SetChecked(false)
+	end
 end
+
+function wwbMouseOverEnter()
+	if wwbSettings.options.wwbMouseOver == true then
+		wwbFrame:SetAlpha(1)
+	end
+end
+
+function wwbMouseOverLeave()
+	if wwbSettings.options.wwbMouseOver == true then
+		wwbFrame:SetAlpha(wwbSettings.options.wwbMouseOver)
+	end
+end
+
+function wwbToggle()
+	if wwbSettings.options.wwbHidden == false then
+		wwbFrame:Hide()
+		ChatFrame1:AddMessage("Water Walk Button |cffff0000hidden|r!")
+		wwbSettings.options.wwbHidden = true
+		wwbHideBtnOpt:SetChecked(false)
+	else
+		wwbFrame:Show()
+		ChatFrame1:AddMessage("Water Walk Button |cff00ff00visible|r!")
+		wwbSettings.options.wwbHidden = false
+		wwbHideBtnOpt:SetChecked(true)
+	end
+end
+
+function wwbLocker()
+	if wwbSettings.options.wwbLock == true then
+		wwbSettings.options.wwbLock = false
+		wwbLockBtnOpt:SetChecked(false)
+		wwbFrame:EnableMouse(wwbSettings.options.wwbLock)
+		ChatFrame1:AddMessage("Water Walk Button |cffff0000locked|r!")
+	else
+		wwbSettings.options.wwbLock = true
+		wwbLockBtnOpt:SetChecked(true)
+		wwbFrame:EnableMouse(wwbSettings.options.wwbLock)
+		ChatFrame1:AddMessage("Water Walk Button |cff00ff00unlock|r!")
+	end
+end
+
+function wwbOption()
+	InterfaceOptionsFrame_OpenToCategory("|cff00ff00Water Walk Button|r")
+end
+
+function wwbInfo()
+	ChatFrame1:AddMessage(GetAddOnMetadata(addon_name, "Title") .. " " .. GetAddOnMetadata(addon_name, "Version") .. " on " .. GetAddOnMetadata(addon_name, "X-Date"))
+	ChatFrame1:AddMessage(GetAddOnMetadata("Author: " .. addon_name, "Author"))
+end
+
+function SlashCmdList.(msg, Editbox)
+	if msg == "toggle" then
+		wwbToggle()
+	elseif msg == "lock" then
+		wwbLocker()
+	elseif msg == "options" then
+		wwbOption()
+	elseif msg == "info" then
+		wwbInfo()
+	else
+		ChatFrame1:AddMessage("|cff71c671Water Walk Button|r")
+		ChatFrame1:AddMessage("|cff71c671type /WWB followed by:|r")
+		ChatFrame1:AddMessage("|cff71c671  -- toggle to toggle display of the button.|r")
+		ChatFrame1:AddMessage("|cff71c671  -- lock to toggle locking the button in place.|r")
+		ChatFrame1:AddMessage("|cff71c671  -- options to open to addon options.|r")
+		ChatFrame1:AddMessage("|cff71c671  -- info to display current info for the addon.|r")
+	end
+end
+
+PetBattleFrame:HookScript("OnShow", function() wwbFrame:Hide() end)
+PetBattleFrame:HookScript("OnHide", function() if wwbSetting.options.wwbHidden == false then wwbFrame:Show() end end)
