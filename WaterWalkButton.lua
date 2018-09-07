@@ -39,18 +39,18 @@ function wwbEvents_table.eventFrame:ADDON_LOADED(AddOn)
 		if type(dst) ~= "table" then dst = {} end
 		for k, v in pairs(src) do
 			if type(v) == "table" then
-				dst[k] = wwbSVCheck(v, dst[k])
+				dst[k] = wwbSVCheck(v,dst[k])
 			elseif type(v) ~= type(dst[k]) then
 				dst[k] = v
 			end
-			return dst
 		end
+		return dst
 	end
 
 	wwbSettings = wwbSVCheck(defaults, wwbSettings)
 
 	wwbMainFrame()
-	wwwbOptionsInit()
+	wwbOptionsInit()
 	wwbInitialize()
 end
 
@@ -58,8 +58,8 @@ function wwbMainFrame()
 	wwbFrame = CF("Frame", "wwbFrame", UIParent)
 	wwbFrame:SetPoint("CENTER", UIParent, "CENTER")
 	wwbFrame:SetFrameStrata("BACKGROUND")
-	wwbFrame:SetBackDrop(wwbFrameBG)
-	wwbFrame:SetSize(20, 20)
+	wwbFrame:SetBackdrop(wwbFrameBG)
+	wwbFrame:SetSize(44, 44)
 
 	wwbFrame:SetMovable(true)
 	wwbFrame:SetClampedToScreen(true)
@@ -131,13 +131,13 @@ function wwbOptionsInit()
 	-- Misc Options Frame
 	local wwbMiscFrame = CF("Frame", WWBMiscFrame, wwbOptions)
 	wwbMiscFrame:SetPoint("TOPLEFT", desc, "BOTTOMLEFT", 0, -8)
-	wwbMiscFrame:SetBackdrop(shOptionsBG)
+	wwbMiscFrame:SetBackdrop(wwbOptionsBG)
 	wwbMiscFrame:SetSize(240, 240)
 
 	local miscTitle = createfont("GameFontNormal", nil, nil, nil, "TOP", wwbMiscFrame, "TOP", 150, 16, 0, -8, "Miscellaneous Options")
 
 	-- Enable Mouseover
-	local wwbMouseOverOpt = createcheckbox("Enable Mouseover of WWB.", 18, 18, "TOPLEFT", miscTitle, "TOPLEFT", -40, -16, "shMouseOverOpt")
+	local wwbMouseOverOpt = createcheckbox("Enable Mouseover of WWB.", 18, 18, "TOPLEFT", miscTitle, "TOPLEFT", -40, -16, "wwbMouseOverOpt")
 
 	wwbMouseOverOpt:SetScript("OnClick", function(self)
 		if wwbMouseOverOpt:GetChecked() == true then
@@ -231,11 +231,9 @@ function wwbOptionsInit()
 			wwbFrame:SetAlpha(wwbSettings.options.wwbAlpha)
 		end
 		wwbAlphaDisplay:SetText(wwbSettings.options.wwbAlpha)
-	--	print(shSettings.options.shalpha)
 	end);
 
 	wwbOptions.refresh = function()
-	--	print("refresh")
 		wwbScale:SetValue(wwbSettings.options.wwbScale);
 		wwbAlpha:SetValue(wwbSettings.options.wwbAlpha);
 	end
@@ -256,14 +254,30 @@ function wwbOptionsInit()
 end
 
 function wwbMakeButton(classIndex)
-	-- body
+	local name,icon
+	local wwbBtn = CF("Button", nil, wwbFrame, "SecureActionButtonTemplate")
+	wwbBtn:SetFrameStrata("BACKGROUND")
+	wwbBtn:SetPoint("CENTER", wwbFrame, "CENTER", 0, 0)
+	wwbBtn:SetSize(34, 34)
+	wwbBtn:EnableMouse(true)
+	wwbBtn:SetHighlightTexture("Interface\\Button\\UI-Common-MouseHilight")
+	wwbBtn:SetAttribute("type", "spell")
+	if classIndex == 6 then
+		name, _, icon, _, _, _, _ = GetSpellInfo(3714)
+		wwbBtn:SetAttribute("spell", name)
+		wwbBtn:SetNormalTexture(icon)
+	elseif classIndex == 7 then
+		name, _, icon, _, _, _, _ = GetSpellInfo(546)
+		wwbBtn:SetAttribute("spell", name)
+		wwbBtn:SetNormalTexture(icon)
+	end
 end
 
 function wwbInitialize()
 	-- 0=none, 1=Warrior, 2=Paladin, 3=Hunter, 4=Rogue, 5=Priest, 6=DK, 7=Shaman, 8=Mage, 9=Warlock, 10=Monk, 11=Druid, 12=DH
 	class, enClass, classIndex = UnitClass("player")
 
-	wwbFrame:SetScale(wwbSettings.wwbScale)
+	wwbFrame:SetScale(wwbSettings.options.wwbScale)
 
 	if wwbSettings.options.wwbLock == true then
 		wwbFrame:EnableMouse(true)
@@ -274,11 +288,11 @@ function wwbInitialize()
 	end
 
 	if wwbSettings.options.wwbHidden == true then
-		wwbFrame:Show()
-		wwbHideBtnOpt:SetChecked(false)
-	else
 		wwbFrame:Hide()
 		wwbHideBtnOpt:SetChecked(true)
+	else
+		wwbFrame:Show()
+		wwbHideBtnOpt:SetChecked(false)
 	end
 
 	if wwbSettings.options.wwbMouseOver == true then
@@ -288,6 +302,8 @@ function wwbInitialize()
 		wwbMouseOverOpt:SetChecked(false)
 		wwbMouseOverOpt:SetChecked(false)
 	end
+
+	wwbMakeButton(classIndex)
 end
 
 function wwbMouseOverEnter()
@@ -307,25 +323,25 @@ function wwbToggle()
 		wwbFrame:Hide()
 		ChatFrame1:AddMessage("Water Walk Button |cffff0000hidden|r!")
 		wwbSettings.options.wwbHidden = true
-		wwbHideBtnOpt:SetChecked(false)
+		wwbHideBtnOpt:SetChecked(true)
 	else
 		wwbFrame:Show()
 		ChatFrame1:AddMessage("Water Walk Button |cff00ff00visible|r!")
 		wwbSettings.options.wwbHidden = false
-		wwbHideBtnOpt:SetChecked(true)
+		wwbHideBtnOpt:SetChecked(false)
 	end
 end
 
 function wwbLocker()
 	if wwbSettings.options.wwbLock == true then
 		wwbSettings.options.wwbLock = false
-		wwbLockBtnOpt:SetChecked(false)
-		wwbFrame:EnableMouse(wwbSettings.options.wwbLock)
+		wwbLockBtnOpt:SetChecked(true)
+		wwbFrame:EnableMouse(false)
 		ChatFrame1:AddMessage("Water Walk Button |cffff0000locked|r!")
 	else
 		wwbSettings.options.wwbLock = true
-		wwbLockBtnOpt:SetChecked(true)
-		wwbFrame:EnableMouse(wwbSettings.options.wwbLock)
+		wwbLockBtnOpt:SetChecked(false)
+		wwbFrame:EnableMouse(true)
 		ChatFrame1:AddMessage("Water Walk Button |cff00ff00unlock|r!")
 	end
 end
@@ -336,10 +352,10 @@ end
 
 function wwbInfo()
 	ChatFrame1:AddMessage(GetAddOnMetadata(addon_name, "Title") .. " " .. GetAddOnMetadata(addon_name, "Version") .. " on " .. GetAddOnMetadata(addon_name, "X-Date"))
-	ChatFrame1:AddMessage(GetAddOnMetadata("Author: " .. addon_name, "Author"))
+	ChatFrame1:AddMessage("Author: " .. GetAddOnMetadata(addon_name, "Author"))
 end
 
-function SlashCmdList.(msg, Editbox)
+function SlashCmdList.WATERWALKBUTTON(msg, Editbox)
 	if msg == "toggle" then
 		wwbToggle()
 	elseif msg == "lock" then
