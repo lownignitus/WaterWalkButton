@@ -7,15 +7,17 @@ CF = CreateFrame
 SLASH_WATERWALKBUTTON1, SLASH_WATERWALKBUTTON2 = '/wwb', '/WWB'
 local addon_name = "WaterWalkButton"
 local wwbFrameBG = { bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background.blp", edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border.blp", tile = true, tileSize = 32, edgeSize = 16, insets = {left = 3, right = 3, top = 3, bottom = 3}}
-local wwbLoaded, wwbFrame, wwbPlayerClass, class, enClass, classIndex, isKnown
-local shamSpell = 546
+local wwbLoaded, wwbFrame, classIndex, isKnown, nameBuff, spellIdBuff
 local dkSpell = 3714
+local shamSpell = 546
+
 
 local wwbEvents_table = {}
 
 wwbEvents_table.eventFrame = CF("Frame")
 wwbEvents_table.eventFrame:RegisterEvent("ADDON_LOADED")
 wwbEvents_table.eventFrame:RegisterEvent("SPELL_DATA_LOAD_RESULT")
+wwbEvents_table.eventFrame:RegisterEvent("UNIT_AURA")
 wwbEvents_table.eventFrame:SetScript("OnEvent", function(self, event, ...)
 	wwbEvents_table.eventFrame[event](self, ...)
 end)
@@ -59,7 +61,14 @@ end
 
 function wwbEvents_table.eventFrame:SPELL_DATA_LOAD_RESULT(...)
  	wwbInitialize()
- end 
+end
+
+function wwbEvents_table.eventFrame:UNIT_AURA(unit)
+	-- only run on player aura
+	if unit == "player" then
+		wwbGetAuras()
+	end
+end
 
 function wwbMainFrame()
 	wwbFrame = CF("Frame", "wwbFrame", UIParent)
@@ -277,6 +286,20 @@ function wwbMakeButton(classIndex)
 		name, _, icon, _, _, _, _ = GetSpellInfo(shamSpell)
 		wwbBtn:SetAttribute("spell", name)
 		wwbBtn:SetNormalTexture(icon)
+	end
+end
+
+function wwbGetAuras()
+	-- name, icon, count, debuffType, duration, expirationTime, unitCaster, canStealOrPurge, nameplateShowPersonal, spellId, canApplyAura, isBossDebuf, isCastByPlayer, nameplateShowAll, timeMod
+	for i=1,40 do
+		nameBuff,_,_,_,_,_,_,_,_,spellIdBuff = UnitAura("player", i, "CANCELABLE")
+		if spellIdBuff ~= null and nameBuff ~= null then
+			if classIndex == 6 and spellIdBuff == dkSpell then
+				print(nameBuff .. " " .. spellIdBuff)
+			elseif classIndex == 7 and spellIdBuff == shamSpell then
+				print(nameBuff .. " " .. spellIdBuff)
+			end
+		end
 	end
 end
 
