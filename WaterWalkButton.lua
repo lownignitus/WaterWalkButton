@@ -275,7 +275,7 @@ function wwbOptionsInit()
 	InterfaceOptions_AddCategory(wwbOptions)
 end
 
-function wwbMakeButton(classIndex, buffActive, index)
+function wwbMakeButton(classIndex, buffActive, i)
 	local name,icon
 	local wwbBtn = CF("Button", "wwbBtn", wwbFrame, "SecureActionButtonTemplate")
 	wwbBtn:SetFrameStrata("BACKGROUND")
@@ -295,18 +295,16 @@ function wwbMakeButton(classIndex, buffActive, index)
 		wwbBtn:SetAttribute("type", "spell")
 		wwbBtn:SetAttribute("spell", name)
 	elseif buffActive == true then
-		print("Buff true " .. index)
+		print("Buff true " .. i)
 		buffActive = true
---		wwbBtn:SetAttribute("type", "cancelaura")
-		wwbBtn:SetAttribute("type", "macrotext")
---[[		if classIndex == 6 then
-			wwbBtn:SetAttribute("spell", dkSpell)
-		elseif classIndex == 7 then]]
-			mText = "/run CancelUnitBuff(\"player\"," .. index .. ")"
-			print(mText)
-			wwbBtn:SetAttribute("macrotext", mText)
-		end
---	end
+		wwbBtn:SetAttribute("type", "cancelaura")
+--[[		wwbBtn:SetAttribute("type", "macro")
+		mText = "/run CancelUnitBuff(\"player\"," .. index .. ")"
+		print(mText)
+		wwbBtn:SetAttribute("macrotext", mText)]]
+		wwbBtn:SetAttribute("spell", name)
+--		wwbBtn:SetAttribute("index", i)
+	end
 	wwbBtn:SetNormalTexture(icon)
 end
 
