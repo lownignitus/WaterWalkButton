@@ -7,7 +7,8 @@ CF = CreateFrame
 SLASH_WATERWALKBUTTON1, SLASH_WATERWALKBUTTON2 = '/wwb', '/WWB'
 local addon_name = "WaterWalkButton"
 local wwbFrameBG = { bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background.blp", edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border.blp", tile = true, tileSize = 32, edgeSize = 16, insets = {left = 3, right = 3, top = 3, bottom = 3}}
-local wwbLoaded, wwbFrame, classIndex, isKnown, nameBuff, spellIdBuff
+local wwbLoaded, wwbFrame, classIndex, isKnown, nameBuff, spellIdBuff, mText
+local buffActive = false
 local dkSpell = 3714
 local shamSpell = 546
 
@@ -16,7 +17,7 @@ local wwbEvents_table = {}
 
 wwbEvents_table.eventFrame = CF("Frame")
 wwbEvents_table.eventFrame:RegisterEvent("ADDON_LOADED")
-wwbEvents_table.eventFrame:RegisterEvent("SPELL_DATA_LOAD_RESULT")
+wwbEvents_table.eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 wwbEvents_table.eventFrame:RegisterEvent("UNIT_AURA")
 wwbEvents_table.eventFrame:SetScript("OnEvent", function(self, event, ...)
 	wwbEvents_table.eventFrame[event](self, ...)
@@ -59,13 +60,18 @@ function wwbEvents_table.eventFrame:ADDON_LOADED(AddOn)
 	wwbLoaded = true
 end
 
-function wwbEvents_table.eventFrame:SPELL_DATA_LOAD_RESULT(...)
- 	wwbInitialize()
+function wwbEvents_table.eventFrame:PLAYER_ENTERING_WORLD(...)
+--	print("enter world")
+ 	if wwbLoaded == true then
+-- 		print("wwbInitialize")
+ 		wwbInitialize()
+ 		wwbLoaded = false
+ 	end
 end
 
 function wwbEvents_table.eventFrame:UNIT_AURA(unit)
 	-- only run on player aura
-	if unit == "player" then
+	if unit == "player" and buffActive == false then
 		wwbGetAuras()
 	end
 end
@@ -269,24 +275,39 @@ function wwbOptionsInit()
 	InterfaceOptions_AddCategory(wwbOptions)
 end
 
-function wwbMakeButton(classIndex)
+function wwbMakeButton(classIndex, buffActive, index)
 	local name,icon
-	local wwbBtn = CF("Button", nil, wwbFrame, "SecureActionButtonTemplate")
+	local wwbBtn = CF("Button", "wwbBtn", wwbFrame, "SecureActionButtonTemplate")
 	wwbBtn:SetFrameStrata("BACKGROUND")
 	wwbBtn:SetPoint("CENTER", wwbFrame, "CENTER", 0, 0)
 	wwbBtn:SetSize(34, 34)
 	wwbBtn:EnableMouse(true)
 	wwbBtn:SetHighlightTexture("Interface\\Button\\UI-Common-MouseHilight")
-	wwbBtn:SetAttribute("type", "spell")
+	-- name,rank,icon,castTime,minRange,maxRange,spellId
 	if classIndex == 6 then
 		name, _, icon, _, _, _, _ = GetSpellInfo(dkSpell)
-		wwbBtn:SetAttribute("spell", name)
-		wwbBtn:SetNormalTexture(icon)
 	elseif classIndex == 7 then
 		name, _, icon, _, _, _, _ = GetSpellInfo(shamSpell)
-		wwbBtn:SetAttribute("spell", name)
-		wwbBtn:SetNormalTexture(icon)
 	end
+	if buffActive == false then
+		print("Buff false")
+		buffActive = true
+		wwbBtn:SetAttribute("type", "spell")
+		wwbBtn:SetAttribute("spell", name)
+	elseif buffActive == true then
+		print("Buff true " .. index)
+		buffActive = true
+--		wwbBtn:SetAttribute("type", "cancelaura")
+		wwbBtn:SetAttribute("type", "macrotext")
+--[[		if classIndex == 6 then
+			wwbBtn:SetAttribute("spell", dkSpell)
+		elseif classIndex == 7 then]]
+			mText = "/run CancelUnitBuff(\"player\"," .. index .. ")"
+			print(mText)
+			wwbBtn:SetAttribute("macrotext", mText)
+		end
+--	end
+	wwbBtn:SetNormalTexture(icon)
 end
 
 function wwbGetAuras()
@@ -295,15 +316,18 @@ function wwbGetAuras()
 		nameBuff,_,_,_,_,_,_,_,_,spellIdBuff = UnitAura("player", i, "CANCELABLE")
 		if spellIdBuff ~= null and nameBuff ~= null then
 			if classIndex == 6 and spellIdBuff == dkSpell then
-				print(nameBuff .. " " .. spellIdBuff)
+--				print(nameBuff .. " " .. spellIdBuff)
+				wwbMakeButton(classIndex, true, i)
 			elseif classIndex == 7 and spellIdBuff == shamSpell then
-				print(nameBuff .. " " .. spellIdBuff)
+--				print(nameBuff .. " " .. spellIdBuff)
+				wwbMakeButton(classIndex, true, i)
 			end
 		end
 	end
 end
 
 function wwbInitialize()
+--	print("wwbInitialize")
 	-- 0=none, 1=Warrior, 2=Paladin, 3=Hunter, 4=Rogue, 5=Priest, 6=DK, 7=Shaman, 8=Mage, 9=Warlock, 10=Monk, 11=Druid, 12=DH
 	_, _, classIndex = UnitClass("player")
 
@@ -336,14 +360,14 @@ function wwbInitialize()
 	if classIndex == 6 then
 		isKnown = IsSpellKnown(dkSpell)
 		if isKnown == true then
-			wwbMakeButton(classIndex)
+			wwbMakeButton(classIndex, buffActive)
 		else
 			wwbFrame:Hide()
 		end
 	elseif classIndex == 7 then
 		isKnown = IsSpellKnown(shamSpell)
 		if isKnown == true then
-			wwbMakeButton(classIndex)
+			wwbMakeButton(classIndex, buffActive)
 		else
 			wwbFrame:Hide()
 		end
