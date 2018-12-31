@@ -1,10 +1,10 @@
-## Interface: 80000
+## Interface: 80100
 ## Title: |cff00ff00Water Walk Button|r
-## Version: |cffFF4500v1.0.02|r
+## Version: |cffFF4500v1.0.03|r
 ## Notes: Standalone button for Shaman/Death Knight water walk spells.
 ## Author: |cffDA70D6LownIgnitus|r aka Mihkael of Alexstrasza-US Alliance
 ## X-Contact: https://twitter.com/lownignitus
-## X-Date: 06/09/2018
+## X-Date: 01/01/2018
 ## X-Website: https://github.com/lownignitus/WaterWalkButton
 ## SavedVariables: wwbSettings
 

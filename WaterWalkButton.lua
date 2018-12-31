@@ -1,18 +1,21 @@
 -- Title: Water Walk Button
 -- Author: LownIgnitus
--- Version: 1.0.0
+-- Version: 1.0.3
 -- Desc: Standalone button for Shaman/Death Knight water walk spells
 
 CF = CreateFrame
 SLASH_WATERWALKBUTTON1, SLASH_WATERWALKBUTTON2 = '/wwb', '/WWB'
 local addon_name = "WaterWalkButton"
 local wwbFrameBG = { bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background.blp", edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border.blp", tile = true, tileSize = 32, edgeSize = 16, insets = {left = 3, right = 3, top = 3, bottom = 3}}
-local wwbFrame, wwbPlayerClass, class, enClass, classIndex 
+local wwbLoaded, wwbFrame, wwbPlayerClass, class, enClass, classIndex, isKnown
+local shamSpell = 546
+local dkSpell = 3714
 
 local wwbEvents_table = {}
 
 wwbEvents_table.eventFrame = CF("Frame")
 wwbEvents_table.eventFrame:RegisterEvent("ADDON_LOADED")
+wwbEvents_table.eventFrame:RegisterEvent("SPELL_DATA_LOAD_RESULT")
 wwbEvents_table.eventFrame:SetScript("OnEvent", function(self, event, ...)
 	wwbEvents_table.eventFrame[event](self, ...)
 end)
@@ -51,8 +54,12 @@ function wwbEvents_table.eventFrame:ADDON_LOADED(AddOn)
 
 	wwbMainFrame()
 	wwbOptionsInit()
-	wwbInitialize()
+	wwbLoaded = true
 end
+
+function wwbEvents_table.eventFrame:SPELL_DATA_LOAD_RESULT(...)
+ 	wwbInitialize()
+ end 
 
 function wwbMainFrame()
 	wwbFrame = CF("Frame", "wwbFrame", UIParent)
@@ -263,11 +270,11 @@ function wwbMakeButton(classIndex)
 	wwbBtn:SetHighlightTexture("Interface\\Button\\UI-Common-MouseHilight")
 	wwbBtn:SetAttribute("type", "spell")
 	if classIndex == 6 then
-		name, _, icon, _, _, _, _ = GetSpellInfo(3714)
+		name, _, icon, _, _, _, _ = GetSpellInfo(dkSpell)
 		wwbBtn:SetAttribute("spell", name)
 		wwbBtn:SetNormalTexture(icon)
 	elseif classIndex == 7 then
-		name, _, icon, _, _, _, _ = GetSpellInfo(546)
+		name, _, icon, _, _, _, _ = GetSpellInfo(shamSpell)
 		wwbBtn:SetAttribute("spell", name)
 		wwbBtn:SetNormalTexture(icon)
 	end
@@ -275,7 +282,7 @@ end
 
 function wwbInitialize()
 	-- 0=none, 1=Warrior, 2=Paladin, 3=Hunter, 4=Rogue, 5=Priest, 6=DK, 7=Shaman, 8=Mage, 9=Warlock, 10=Monk, 11=Druid, 12=DH
-	class, enClass, classIndex = UnitClass("player")
+	_, _, classIndex = UnitClass("player")
 
 	wwbFrame:SetScale(wwbSettings.options.wwbScale)
 
@@ -303,8 +310,20 @@ function wwbInitialize()
 		wwbMouseOverOpt:SetChecked(false)
 	end
 
-	if classIndex == 6 or classIndex == 7 then
-		wwbMakeButton(classIndex)
+	if classIndex == 6 then
+		isKnown = IsSpellKnown(dkSpell)
+		if isKnown == true then
+			wwbMakeButton(classIndex)
+		else
+			wwbFrame:Hide()
+		end
+	elseif classIndex == 7 then
+		isKnown = IsSpellKnown(shamSpell)
+		if isKnown == true then
+			wwbMakeButton(classIndex)
+		else
+			wwbFrame:Hide()
+		end
 	else
 		wwbFrame:Hide()
 	end
