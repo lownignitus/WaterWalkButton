@@ -19,6 +19,7 @@ wwbEvents_table.eventFrame = CF("Frame")
 wwbEvents_table.eventFrame:RegisterEvent("ADDON_LOADED")
 wwbEvents_table.eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 wwbEvents_table.eventFrame:RegisterEvent("UNIT_AURA")
+wwbEvents_table.eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
 wwbEvents_table.eventFrame:SetScript("OnEvent", function(self, event, ...)
 	wwbEvents_table.eventFrame[event](self, ...)
 end)
@@ -73,6 +74,12 @@ function wwbEvents_table.eventFrame:UNIT_AURA(unit)
 	-- only run on player aura
 	if unit == "player" and buffActive == false then
 		wwbGetAuras()
+	end
+end
+
+function wwbEvents_table.eventFrame:PLAYER_REGEN_ENABLED( ... )
+	if classIndex == 6 or classIndex == 7 then
+		wwbMakeButton(classIndex, buffActive)
 	end
 end
 
@@ -276,6 +283,11 @@ function wwbOptionsInit()
 end
 
 function wwbMakeButton(classIndex, buffActive, i)
+	if InCombatLockdown() then
+		-- Cannot update in combat
+		return
+	end
+
 	local name,icon
 	local wwbBtn = CF("Button", "wwbBtn", wwbFrame, "SecureActionButtonTemplate")
 	wwbBtn:SetFrameStrata("BACKGROUND")
@@ -289,36 +301,38 @@ function wwbMakeButton(classIndex, buffActive, i)
 	elseif classIndex == 7 then
 		name, _, icon, _, _, _, _ = GetSpellInfo(shamSpell)
 	end
-	if buffActive == false then
+	wwbBtn:SetNormalTexture(icon)
+	if buffActive == true then
+		print("Buff true " .. name)
+--		wwbBtn:SetAttribute("type", "cancelaura")
+		wwbBtn:SetAttribute("type", "macro")
+--		mText = "/run CancelUnitBuff(\"player\"," .. index .. ")"
+		mText = "/cancelaura " .. name
+		print(mText)
+		wwbBtn:SetAttribute("macrotext", mText)
+--		wwbBtn:SetAttribute("spell", name)
+--		wwbBtn:SetAttribute("index", i)
+	elseif buffActive == false then
 		print("Buff false")
 		buffActive = true
 		wwbBtn:SetAttribute("type", "spell")
 		wwbBtn:SetAttribute("spell", name)
-	elseif buffActive == true then
-		print("Buff true " .. i)
-		buffActive = true
-		wwbBtn:SetAttribute("type", "cancelaura")
---[[		wwbBtn:SetAttribute("type", "macro")
-		mText = "/run CancelUnitBuff(\"player\"," .. index .. ")"
-		print(mText)
-		wwbBtn:SetAttribute("macrotext", mText)]]
-		wwbBtn:SetAttribute("spell", name)
---		wwbBtn:SetAttribute("index", i)
 	end
-	wwbBtn:SetNormalTexture(icon)
 end
 
 function wwbGetAuras()
 	-- name, icon, count, debuffType, duration, expirationTime, unitCaster, canStealOrPurge, nameplateShowPersonal, spellId, canApplyAura, isBossDebuf, isCastByPlayer, nameplateShowAll, timeMod
 	for i=1,40 do
 		nameBuff,_,_,_,_,_,_,_,_,spellIdBuff = UnitAura("player", i, "CANCELABLE")
-		if spellIdBuff ~= null and nameBuff ~= null then
+		if spellIdBuff ~= null and nameBuff ~= null and buffActive == false then
 			if classIndex == 6 and spellIdBuff == dkSpell then
 --				print(nameBuff .. " " .. spellIdBuff)
-				wwbMakeButton(classIndex, true, i)
+				buffActive = true
+				wwbMakeButton(classIndex, buffActive, i)
 			elseif classIndex == 7 and spellIdBuff == shamSpell then
 --				print(nameBuff .. " " .. spellIdBuff)
-				wwbMakeButton(classIndex, true, i)
+				buffActive = true
+				wwbMakeButton(classIndex, buffActive, i)
 			end
 		end
 	end
@@ -442,5 +456,7 @@ function SlashCmdList.WATERWALKBUTTON(msg, Editbox)
 	end
 end
 
-PetBattleFrame:HookScript("OnShow", function() wwbFrame:Hide() end)
-PetBattleFrame:HookScript("OnHide", function() if wwbSetting.options.wwbHidden == false then wwbFrame:Show() end end)
+if classIndex == 6 or classIndex == 7 then
+	PetBattleFrame:HookScript("OnShow", function() wwbFrame:Hide() end)
+	PetBattleFrame:HookScript("OnHide", function() if wwbSettings.options.wwbHidden == false then wwbFrame:Show() end end)
+end
